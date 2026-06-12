@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopMapp | POS Terminal</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../overview.css">
+    <link rel="stylesheet" href="sales-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body class="sales-terminal">
+
+    <div class="terminal-wrapper">
+        <aside class="terminal-sidebar">
+            <div class="brand">
+                <img src="/favicon.svg" alt="ShopMapp" class="logo">
+                <span>ShopMapp</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button id="new-invoice-btn" class="sidebar-btn primary">
+                    <i>+</i> New Sale
+                </button>
+                <div class="nav-divider"></div>
+                <div class="stats-mini">
+                    <label>Active Invoices</label>
+                    <span id="invoice-count">1</span>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="overview.html" class="back-link" onclick="clearSessionAndNavigate(event)">← Dashboard</a>
+            </div>
+        </aside>
+
+        <main class="terminal-content">
+            <header class="content-header">
+                <div class="header-info">
+                    <h1 id="business-name">ShopMapp Retail</h1>
+                    <p id="agent-name-display">Agent: Loading...</p>
+                </div>
+                <div class="header-actions">
+                    <span id="salesOnlineStatus" class="internet-status">Online</span>
+                    <span id="offlineQueueCount" class="internet-status success">All synced</span>
+                    <button id="sync-offline-btn" class="btn btn-outline" type="button">Sync Offline</button>
+                    <button id="open-advisor-btn" class="btn btn-outline" type="button">Ask Advisor</button>
+                    <span id="current-date" class="date-badge"></span>
+                </div>
+            </header>
+
+            <div class="invoices-container" id="invoices-holder">
+                <!-- Invoices will be injected here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Receipt Overlay -->
+    <div id="receipt-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="receipt-toolbar">
+                <div class="receipt-labels">
+                    <span class="tag">Invoice Preview</span>
+                    <span id="receipt-status" class="receipt-status">Ready for action</span>
+                </div>
+                <button id="close-modal-btn" class="btn-cancel icon-btn">×</button>
+            </div>
+            <div id="receipt-content" class="receipt-content"></div>
+            <div class="modal-footer">
+                <button id="save-invoice-btn" class="btn-secondary">Save Invoice</button>
+                <button id="download-invoice-btn" class="btn-secondary">Download Invoice</button>
+                <button id="print-invoice-btn" class="btn-outline">Print</button>
+                <button id="confirm-sale-btn" class="btn-confirm">Complete Sale</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Advisor Modal -->
+    <div id="advisor-modal" class="modal hidden">
+        <div class="modal-card">
+            <div class="receipt-toolbar">
+                <div class="receipt-labels">
+                    <span class="tag">AI Business Advisor</span>
+                    <span id="advisor-status" class="receipt-status">Ask a question about your store</span>
+                </div>
+                <button id="close-advisor-btn" class="btn-cancel icon-btn">×</button>
+            </div>
+            <div class="advisor-body">
+                <textarea id="advisor-question-input" placeholder="E.g. Which of my products should I restock with KES 10,000?" rows="4"></textarea>
+                <div class="advisor-actions">
+                    <button id="advisor-send-btn" class="btn-confirm">Ask</button>
+                </div>
+                <div id="advisor-response" class="advisor-response"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script type="module" src="sales.js"></script>
+</body>
+</html>

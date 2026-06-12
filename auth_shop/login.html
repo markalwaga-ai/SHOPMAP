@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ShopMapp</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../auth-login.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo logo">Shop<span>Mapp</span></div>
+        <h2 class="form-title">Welcome Back</h2>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Business Email</label>
+                    <input id="emailInput" type="email" placeholder="email@business.com" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input id="passwordInput" type="password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group remember-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMeCheckbox" checked>
+                        Remember me
+                    </label>
+                </div>
+                <button type="submit" id="loginBtn" class="btn btn-primary btn-full">Log In</button>
+            </form>
+
+            <div class="divider">OR</div>
+
+            <button id="googleSignInBtn" class="btn btn-google" type="button">
+                <img src="/favicon.svg" width="22" height="22" alt="ShopMapp">
+                Continue with Google
+            </button>
+
+            <button id="staffContinueBtn" class="btn btn-outline btn-full" type="button">
+                Continue as Staff
+            </button>
+
+            <div class="alt-text">
+                New to ShopMapp? <a href="business.html">Register your business</a>
+            </div>
+        </div>
+
+    <script type="module">
+        import { auth, db, googleProvider, showAlert } from "../firebase.js";
+        import { errorNotification, infoNotification, showLoading, hideLoading } from "../notifications.js";
+        import { signInWithEmailAndPassword, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        
+        const loginForm = document.getElementById("loginForm");
+        const googleBtn = document.getElementById("googleSignInBtn");
+        const loginBtn = document.getElementById("loginBtn");
+        const rememberMeCheckbox = document.getElementById("rememberMeCheckbox");
+        
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const email = document.getElementById("emailInput").value.trim();
+            const password = document.getElementById("passwordInput").value;
+            
+            if (!email || !password) {
+                errorNotification('Please fill in all fields');
+                return;
+            }
+
+            const persistence = rememberMeCheckbox.checked ? browserLocalPersistence : browserSessionPersistence;
+            await setPersistence(auth, persistence);
+            
+            showLoading('Verifying credentials...');
+            loginBtn.disabled = true;
+            loginBtn.textContent = "Verifying...";
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                const user = auth.currentUser;
+                const businessRef = doc(db, "businesses", user.uid);
+                const businessDoc = await getDoc(businessRef);
+                if (businessDoc.exists()) {
+                    infoNotification('Owner login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = "overview.html";
+                    }, 1000);
+                } else {
+                    // Staff accounts should use the staff gate page.
+                    await auth.signOut();
+                    errorNotification('Staff accounts must use Continue as Staff.');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = "Log In";
+                    hideLoading();
+                }
+            } catch (error) {
+                hideLoading();
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Log In";
+                errorNotification("Login Failed: " + error.message);
+            }
+        });
+        
+        googleBtn.addEventListener("click", async () => {
+            const persistence = rememberMeCheckbox.checked ? browserLocalPersistence : browserSessionPersistence;
+            await setPersistence(auth, persistence);
+            showLoading('Signing in with Google...');
+            googleBtn.disabled = true;
+            const originalGoogleText = googleBtn.innerHTML;
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                const businessRef = doc(db, "businesses", user.uid);
+                const businessDoc = await getDoc(businessRef);
+                
+                if (businessDoc.exists()) {
+                    infoNotification('Welcome back! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = "user.html";
+                    }, 1000);
+                } else {
+                    const email = encodeURIComponent(user.email || "");
+                    const name = encodeURIComponent(user.displayName || "");
+                    infoNotification('Setting up your business...');
+                    setTimeout(() => {
+                        window.location.href = `business.html?email=${email}&name=${name}&isGoogle=true`;
+                    }, 800);
+                }
+            } catch (error) {
+                hideLoading();
+                googleBtn.disabled = false;
+                googleBtn.innerHTML = originalGoogleText;
+                errorNotification("Google Sign-In Error: " + error.message);
+            }
+        });
+
+        document.getElementById('staffContinueBtn').addEventListener('click', () => {
+            window.location.href = 'user.html';
+        });
+    </script>
+</body>
+</html>

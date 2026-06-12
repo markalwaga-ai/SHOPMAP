@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Panel | ShopMapp</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../owner.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-page">
+
+    <button class="menu-toggle">☰</button>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo logo">Shop<span>Mapp</span></div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="side-link active" data-section="dashboard"><i>🏢</i> Business Control</a>
+            <a href="#" class="side-link" data-section="agents"><i>👥</i> Sales Agents</a>
+            <a href="#" class="side-link" data-section="reports"><i>📊</i> Reports & Analytics</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="../auth_shop/overview.html" class="side-link"><i>⬅️</i> Back to Dashboard</a>
+            <a href="#" class="side-link sign-out-link" onclick="handleLogout()"><i>🔓</i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- Section: Business Control -->
+        <div id="dashboard-section" class="content-section active">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Business Control Panel</h1>
+                    <p id="ownerBusinessName" class="page-subtitle">Loading business name...</p>
+                    <p class="page-subtitle">Manage your retail identity and operations</p>
+                </div>
+                <div class="header-actions">
+                    <div id="userProfileBadge" class="user-profile-badge">
+                        <div class="profile-avatar">
+                            <img src="/favicon.svg" alt="Profile" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjNmI3MjgwIi8+CjxwYXRoIGQ9Ik0xMiAxNWMtNC40MjEgMC04LTMuNTgtOC04czMuNTgtOCA4LThzOCAzLjU4IDggOFoiIGZpbGw9IiM2YjcyODAiLz4KPHBhdGggZD0iTTIwIDIxdi0yYTggOCAwIDAwLTE2IDB2MiIgc3Ryb2tlPSIjNmI3MjgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K'">
+                            <div id="onlineStatus" class="online-indicator online"></div>
+                        </div>
+                        <div class="profile-info">
+                            <div id="userDisplayName" class="user-name">Loading...</div>
+                            <div id="userRoleDisplay" class="user-role">Role</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="owner-grid">
+                <section class="owner-section">
+                    <h3>🏢 Business Information</h3>
+                    <form id="business-form">
+                        <div class="owner-form-group">
+                            <label>Business Name</label>
+                            <input type="text" id="biz-name" required>
+                        </div>
+                        <div class="owner-form-group">
+                            <label>Business Type</label>
+                            <select id="biz-type">
+                                <option value="automotive">Automotive</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="pharmacy">Pharmacy</option>
+                                <option value="general">General Retail</option>
+                            </select>
+                        </div>
+                        <div class="owner-form-group">
+                            <label>Receipt Description (e.g. KRA PIN)</label>
+                            <textarea id="biz-desc" rows="3"></textarea>
+                        </div>
+                        <div class="owner-form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="biz-email">
+                        </div>
+                        <button type="submit" class="btn btn-primary owner-save-btn">💾 Save Settings</button>
+                    </form>
+                </section>
+
+                <section class="owner-stats">
+                    <div class="stat-box">
+                        <div class="stat-box-label">Today's Revenue</div>
+                        <div class="stat-box-value" id="todayRevenue">KES 0.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">Total Products</div>
+                        <div class="stat-box-value" id="totalProducts">0</div>
+                    </div>
+                </section>
+                <section class="owner-section">
+                    <h3>📥 Offline Queue</h3>
+                    <div class="offline-queue-card">
+                        <div id="offlineQueueSummary" class="offline-queue-summary">Loading offline queue...</div>
+                        <div class="offline-queue-actions">
+                            <button id="refreshOfflineQueueBtn" class="btn btn-primary">Refresh Queue</button>
+                            <button id="syncOfflineQueueBtn" class="btn btn-outline">Sync Now</button>
+                        </div>
+                        <div id="offlineQueueList" class="offline-queue-list"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Section: Sales Agents -->
+        <div id="agents-section" class="content-section">
+            <header class="dash-header">
+                <h1 class="page-heading">Team Management</h1>
+            </header>
+            <div class="owner-grid">
+                <section class="owner-section">
+                    <h3>➕ Register New Agent</h3>
+                    <form id="add-agent-form">
+                        <input type="text" id="agent-name" placeholder="Full Name" required>
+                        <input type="email" id="agent-email" placeholder="Email" required>
+                        <input type="password" id="agent-password" placeholder="Password" required>
+                        <select id="agent-role">
+                            <option value="sales_agent">Sales Agent</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary w-full">Register Agent</button>
+                    </form>
+                </section>
+                <section class="owner-section">
+                    <h3>👥 Active Team (<span id="totalAgents">0</span>)</h3>
+                    <div id="agents-list" class="agents-list-container"></div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Section: Reports -->
+        <div id="reports-section" class="content-section">
+            <header class="dash-header">
+                <h1 class="page-heading">Analytics</h1>
+            </header>
+            <div class="grid-auto-fit">
+                <div class="tile-card tile-card-green">
+                    <div class="tile-label">Monthly Revenue</div>
+                    <div class="tile-value" id="monthRevenue">KES 0.00</div>
+                </div>
+                <div class="tile-card tile-card-blue">
+                    <div class="tile-label">Transactions</div>
+                    <div class="tile-value" id="totalTransactions">0</div>
+                </div>
+            </div>
+            <div class="chart-container-large card mt-2rem">
+                <h3>📈 7-Day Sales Trend</h3>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="owner.js"></script>
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('../auth_shop/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

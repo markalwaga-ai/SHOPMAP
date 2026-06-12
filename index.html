@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopMapp | Retail Intelligence Platform</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="auth-login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="container nav-flex">
+            <a href="index.html" class="logo" aria-label="ShopMapp Home">Shop<span>Mapp</span></a>
+            <nav class="nav-links" aria-label="Main Navigation">
+                <a href="#features">Solutions</a>
+                <a href="#about">Enterprise</a>
+                <a href="auth_shop/login.html">Login</a>
+                <a href="auth_shop/business.html" class="btn btn-primary">Get Started</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-text">
+                    <span class="badge">Enterprise Ready v2.4</span>
+                    <h1>Intelligence for the <span>Modern Retailer.</span></h1>
+                    <p>Go beyond simple sales tracking. ShopMapp provides real-time logistics monitoring, employee performance audits, and predictive inventory analytics in one unified dashboard.</p>
+                    <div class="hero-actions">
+                        <a href="auth_shop/business.html" class="btn btn-primary">Get Started</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="mockup-container">
+                        <div class="mockup-header">
+                            <div class="mockup-dot dot-1"></div>
+                            <div class="mockup-dot dot-2"></div>
+                            <div class="mockup-dot dot-3"></div>
+                        </div>
+                        <div class="mockup-body">
+                            <div class="skeleton sk-bar"></div>
+                            <div class="sk-grid">
+                                <div class="skeleton sk-card blue-tint"></div>
+                                <div class="skeleton sk-card green-tint"></div>
+                            </div>
+                            <div class="skeleton sk-long"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Engineered for Scale</h2>
+                    <p>Strategic tools designed to simplify complex multi-store operations.</p>
+                </div>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon-box">📊</div>
+                        <h3>Deep Analytics</h3>
+                        <p>Automated reporting engines provide high-fidelity insights into profit margins, seasonal trends, and customer lifetime value.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">📦</div>
+                        <h3>Smart Inventory</h3>
+                        <p>Real-time stock monitoring with automated reorder triggers and AI-driven supply chain resilience tracking.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon-box">👥</div>
+                        <h3>Audit Control</h3>
+                        <p>Every transaction and adjustment is logged with a secure digital paper trail for absolute accountability across your workforce.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">Shop<span>Mapp</span></a>
+                    <p>Building the secure infrastructure for the next generation of global retailers.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Platform</h4>
+                    <ul>
+                        <li><a href="#">Inventory Engine</a></li>
+                        <li><a href="#">Sales POS</a></li>
+                        <li><a href="#">Security Audit</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                &copy; 2026 ShopMapp Inc. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/auth_shop/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+
+</body>
+</html>

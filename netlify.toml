@@ -1,0 +1,24 @@
+[build]
+  # Build command for ShopMapp
+  command = "echo 'ShopMapp static site with serverless functions'"
+  # Functions directory
+  functions = "netlify/functions"
+  # Publish directory (where static files are served from)
+  publish = "."
+
+# Redirect all API calls to the function
+[[redirects]]
+  from = "/api/ai-advisor"
+  to = "/.netlify/functions/ai-advisor"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/functions/ai-advisor"
+  to = "/.netlify/functions/ai-advisor"
+  status = 200
+  force = true
+
+# Environment variables can be set in Netlify Site Settings
+# Required: GEMINI_API_KEY
+# Optional: AI_GATEWAY_URL (if using a gateway instead of direct Gemini)

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Your Business | ShopMapp</title>
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../auth-login.css">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page">
+    <div class="auth-card">
+        <div class="auth-logo logo">Shop<span>Mapp</span></div>
+        <h2 class="form-title">Register Your Business</h2>
+        <p id="businessNote" class="form-note hidden"></p>
+            
+            <form id="businessRegForm">
+                <div class="section-title">Business Owner</div>
+                <div class="form-group">
+                    <label>Full Names</label>
+                    <input id="ownerName" type="text" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Personal Email</label>
+                        <input id="ownerEmail" type="email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input id="ownerPhone" type="tel" placeholder="+254..." required>
+                    </div>
+                </div>
+
+                <div class="section-title">Business Information</div>
+                <div class="form-group">
+                    <label>Business Name / Brand</label>
+                    <input id="businessName" type="text" placeholder="e.g. ShopMapp Retail" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input id="location" type="text" placeholder="City, Country" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="businessType">Business Type</label>
+                        <select id="businessType" required>
+                            <option value="Retail Store">Retail Store</option>
+                            <option value="Wholesale">Wholesale</option>
+                            <option value="Pharmacy">Pharmacy</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section-title">Security & Access</div>
+                <div class="form-group">
+                    <label>Business Email (Used for login)</label>
+                    <input id="businessEmail" type="email" placeholder="admin@business.com" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input id="businessPassword" type="password" placeholder="Min 6 characters" minlength="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input id="businessConfirmPassword" type="password" placeholder="Re-enter password" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn btn-primary btn-full">Register Business</button>
+            </form>
+
+            <div class="form-footer">
+                Already have a business? <a href="login.html">Log in here</a>
+            </div>
+        </div>
+
+    <script type="module">
+        import { auth, db } from "../firebase.js";
+        import { createUserWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { showLoading, hideLoading } from "../notifications.js";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get("email");
+        const nameParam = urlParams.get("name");
+        const isGoogle = urlParams.get("isGoogle") === "true";
+
+        if (emailParam) document.getElementById("businessEmail").value = decodeURIComponent(emailParam);
+        if (nameParam) document.getElementById("ownerName").value = decodeURIComponent(nameParam);
+        if (isGoogle) {
+            document.getElementById("businessNote").textContent = "Google verified. Set a password for dual-access.";
+            document.getElementById("businessNote").style.display = "block";
+        }
+
+        const businessForm = document.getElementById("businessRegForm");
+        const submitBtn = document.getElementById("submitBtn");
+
+        businessForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            const businessEmail = document.getElementById("businessEmail").value.trim();
+            const password = document.getElementById("businessPassword").value;
+            const confirmPass = document.getElementById("businessConfirmPassword").value;
+
+            if (password !== confirmPass) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            showLoading("Setting up your business account...");
+            submitBtn.disabled = true;
+            const originalText = submitBtn.textContent;
+
+            try {
+                let user;
+
+                if (isGoogle && auth.currentUser) {
+                    user = auth.currentUser;
+                    const credential = EmailAuthProvider.credential(businessEmail, password);
+                    await linkWithCredential(user, credential);
+                } else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, businessEmail, password);
+                    user = userCredential.user;
+                }
+
+                await setDoc(doc(db, "businesses", user.uid), {
+                    ownerName: document.getElementById("ownerName").value.trim(),
+                    ownerEmail: document.getElementById("ownerEmail").value.trim(),
+                    ownerPhone: document.getElementById("ownerPhone").value.trim(),
+                    ownerPhotoURL: user.photoURL || null,
+                    businessName: document.getElementById("businessName").value.trim(),
+                    location: document.getElementById("location").value.trim(),
+                    businessType: document.getElementById("businessType").value,
+                    businessEmail: businessEmail,
+                    createdAt: serverTimestamp(),
+                    status: "active",
+                    role: "admin"
+                });
+
+                hideLoading();
+                setTimeout(() => {
+                    window.location.href = "user.html"; // Move to user gate
+                }, 300);
+            } catch (error) {
+                hideLoading();
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+                alert(error.message);
+            }
+        });
+    </script>
+</body>
+</html>

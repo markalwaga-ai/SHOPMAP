@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopMapp Business Dashboard</title>
+    <link rel="manifest" href="../manifest.json">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../base.css">
+    <link rel="stylesheet" href="../overview.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body class="dashboard-page">
+
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo logo">Shop<span>Mapp</span></div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="side-link active" data-section="dashboard"><i>🏠</i> Home</a>
+            
+            <div class="nav-section-label">Inventory</div>
+            <a href="#" class="side-link" data-section="inventory"><i>➕</i> New Items</a>
+            <a href="#" class="side-link" data-section="stock"><i>📦</i> Stock</a>
+            <a href="#" class="side-link" data-section="catalogue"><i>📖</i> Catalogue</a>
+            
+            <div class="nav-section-label">Operations</div>
+            <button type="button" class="side-link" data-section="sales" onclick="window.location.href='/auth_shop/sales.html'"><i>⚡</i> Sales Engine</button>
+            <a href="#" class="side-link" data-section="closings"><i>🧾</i> Daily Closings And Report</a>
+            <a href="#" class="side-link" data-section="history"><i>📜</i> Sales History</a>
+            
+            <div class="nav-section-label">Management</div>
+            <a href="#" class="side-link" data-section="settings"><i>⚙️</i> Business Settings</a>
+             <div class="nav-section-label">AI Intelligence</div>
+            <a href="#" class="side-link" data-section="advisor"><i>🤖</i> AI Advisor</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="#" class="side-link sign-out-link" onclick="handleLogout(); return false;"><i>🔓</i> Sign Out</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div id="dashboardLoader" class="dashboard-loader" aria-live="polite" aria-label="Loading dashboard">
+            <div class="dashboard-loader-card">
+                <div class="spinner"></div>
+                <p>Loading dashboard...</p>
+            </div>
+        </div>
+        <div class="dash-header top-nav-header">
+            <div>
+                <h2 id="topHeaderBusinessName" class="page-heading">Business Loading...</h2>
+                <p id="topHeaderAgentName" class="page-subtitle">Agent: Loading...</p>
+            </div>
+            <div class="header-actions">
+                <span id="topHeaderOnlineStatus" class="internet-status">Online</span>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="content-section active">
+            <header class="dash-header">
+                <div>
+                    <h1 id="dashboardBusinessName" class="page-heading">Business Loading...</h1>
+                    <p id="dashboardBusinessSubtitle" class="page-subtitle">Business Intelligence Dashboard</p>
+                </div>
+                <div class="header-actions">
+                    <div id="userProfileBadge" class="user-profile-badge">
+                        <div class="profile-avatar">
+                            <img src="/favicon.svg" alt="Profile" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSI4IiByPSI0IiBmaWxsPSIjNmI3MjgwIi8+CjxwYXRoIGQ9Ik0xMiAxNWMtNC40MjEgMC04LTMuNTgtOC04czMuNTgtOCA4LThzOCAzLjU4IDggOFoiIGZpbGw9IiM2YjcyODAiLz4KPHBhdGggZD0iTTIwIDIxdi0yYTggOCAwIDAwLTE2IDB2MiIgc3Ryb2tlPSIjNmI3MjgwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K'">
+                            <div id="onlineStatus" class="online-indicator online"></div>
+                        </div>
+                        <div class="profile-info">
+                            <div id="userDisplayName" class="user-name">Loading...</div>
+                            <div class="user-role-group">
+                                <span id="userRoleDisplay" class="user-role">Role</span>
+                                <span id="internetStatusLabel" class="internet-status">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="ownerPanelBtn" class="btn btn-outline overview-header-btn" onclick="window.location.href='../business_owner/owner.html'">Owner Panel</button>
+                    <button id="startSalesBtn" class="btn btn-primary btn-sales-engine" onclick="startSales()">Start Sales</button>
+                </div>
+            </header>
+
+            <div class="dashboard-announcement">
+                <span class="announcement-icon">📢</span>
+                <p id="announcementText">
+                    <strong>System Update:</strong> Your weekly performance audit is ready. Inventory sync complete.
+                </p>
+            </div>
+
+            <!-- Financial Metrics Cards -->
+            <div class="financial-metrics-grid">
+                <div class="metric-card metric-card-primary">
+                    <div class="metric-header">
+                        <span class="metric-label">Daily Net Profit (Pro-Stocking)</span>
+                        <span class="metric-badge">Calculated</span>
+                    </div>
+                    <div class="metric-value" id="netProfitValue">KES 0.00</div>
+                    <div class="metric-breakdown">
+                        <span class="metric-sub">Revenue: <span id="netProfitRevenue">KES 0.00</span></span>
+                        <span class="metric-sub">Expenses: <span id="netProfitExpenses">KES 0.00</span></span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Gross Sales (Today)</span>
+                        <span class="metric-badge">Real-time</span>
+                    </div>
+                    <div class="metric-value" id="grossSalesValue">KES 0.00</div>
+                    <div class="metric-breakdown">
+                        <span class="metric-sub">Total Transactions: <span id="transactionCount">0</span></span>
+                        <span class="metric-sub">Avg per Sale: <span id="avgSaleValue">KES 0.00</span></span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Base Expenses (Today)</span>
+                        <span class="metric-badge">Tracked</span>
+                    </div>
+                    <div class="metric-value expense" id="baseExpensesValue">KES 0.00</div>
+                    <div class="metric-breakdown">
+                        <span class="metric-sub">Operating: <span id="operatingExpenses">KES 0.00</span></span>
+                        <span class="metric-sub">Inventory: <span id="inventoryExpenses">KES 0.00</span></span>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <span class="metric-label">Restocking & Growth Funds (Reserved Today)</span>
+                        <span class="metric-badge">Allocated</span>
+                    </div>
+                    <div class="metric-value growth" id="reservedFundsValue">KES 0.00</div>
+                    <div class="metric-breakdown">
+                        <span class="metric-sub">Growth Reserve: <span id="growthReserve">KES 0.00</span></span>
+                        <span class="metric-sub">Restock Buffer: <span id="restockBuffer">KES 0.00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Target Insights -->
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <h3>Real-time Target Insights</h3>
+                        <span class="insight-refresh" onclick="refreshTargetInsights()" title="Refresh insights">⟳</span>
+                    </div>
+                    <div class="target-progress-section">
+                        <div class="target-label">
+                            <span>Target Progress</span>
+                            <span class="target-percentage" id="targetPercentage">0%</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="targetProgressBar" style="width: 0%"></div>
+                        </div>
+                        <div class="target-meta">
+                            <span>KES <span id="currentSalesTarget">0</span> / KES <span id="dailyTarget">50000</span></span>
+                        </div>
+                        <div class="target-meta">
+                            <span>Profit goal: KES <span id="profitTargetValue">0</span></span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="targetInsightsChart"></canvas>
+                    </div>
+                    <ul class="insights-list">
+                        <li id="insight1">Sales volume: Awaiting data...</li>
+                        <li id="insight2">Current reserves: Awaiting data...</li>
+                        <li id="insight3">Restocking capacity: Awaiting data...</li>
+                    </ul>
+                </div>
+
+                <!-- Daily Growth Allocation Advice -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <h3>Daily Growth Allocation Advice</h3>
+                        <span class="advice-icon">💡</span>
+                    </div>
+                    <div class="advice-content" id="adviceContent">
+                        <p>The logic of the pro and numbers is recommended amount:</p>
+                        <div class="advice-items">
+                            <div class="advice-item">
+                                <span class="advice-label">Restocking Investment:</span>
+                                <span class="advice-value" id="adviceRestocking">KES 0</span>
+                            </div>
+                            <div class="advice-item">
+                                <span class="advice-label">Growth Fund Allocation:</span>
+                                <span class="advice-value" id="adviceGrowth">KES 0</span>
+                            </div>
+                            <div class="advice-item">
+                                <span class="advice-label">Net Profit Retention:</span>
+                                <span class="advice-value" id="adviceRetention">KES 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 5 Most Sold Items & Target Insights (Bottom Row) -->
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3>🔥 Top 5 Most Sold Items</h3>
+                    </div>
+                    <div class="top-items-list" id="topItemsList">
+                        <div class="empty-state">
+                            <p>Populating with item data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-card">
+                    <div class="analytics-header">
+                        <h3>📈 Target Insights</h3>
+                    </div>
+                    <div class="target-insights-details" id="targetInsightsDetails">
+                        <div class="empty-state">
+                            <p>Populating with item data...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Closings Section -->
+        <div id="closings-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Daily Closings And Report</h1>
+                    <p class="page-subtitle">See today’s sales in one place, export a closing report, and create a restock order for low stock items.</p>
+                </div>
+            </header>
+
+            <div class="dashboard-grid closings-metrics-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Sales Today</div>
+                    <div class="stat-value" id="dailyTotalSalesValue">KES 0.00</div>
+                    <div class="stat-trend">Clear daily revenue from today's closing.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Cash Total</div>
+                    <div class="stat-value" id="dailyCashValue">KES 0.00</div>
+                    <div class="stat-trend">Cash payments counted separately.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mpesa Total</div>
+                    <div class="stat-value" id="dailyMpesaValue">KES 0.00</div>
+                    <div class="stat-trend">Mobile money totals for the day.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Card Total</div>
+                    <div class="stat-value" id="dailyCardValue">KES 0.00</div>
+                    <div class="stat-trend">Cards and electronic payments.</div>
+                </div>
+                <div class="stat-card expense-card">
+                    <div class="stat-label">Logged Expenses</div>
+                    <div class="stat-value" id="dailyExpensesValue">KES 0.00</div>
+                    <div class="stat-trend">Enter daily expenses to compute profit.</div>
+                </div>
+                <div class="stat-card profit-card">
+                    <div class="stat-label">Net Profit Today</div>
+                    <div class="stat-value" id="dailyProfitValue">KES 0.00</div>
+                    <div class="stat-trend">Sales minus daily expense entries.</div>
+                </div>
+            </div>
+
+            <div class="panel-card closings-expense-panel">
+                <div class="panel-card-header panel-card-header-blue">
+                    <div>
+                        <h3>Daily Expenses</h3>
+                        <p>Record your expense amount for today. This helps compute the true profit after costs.</p>
+                    </div>
+                    <div class="expense-form-row">
+                        <div class="expense-form-group">
+                            <label for="dailyExpensesInput">Expense amount</label>
+                            <input type="number" id="dailyExpensesInput" class="overview-form-input" min="0" step="0.01" placeholder="0.00">
+                        </div>
+                        <button id="saveDailyExpensesBtn" class="btn btn-primary">Save Expense</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <div>
+                        <h3>Today's closing table</h3>
+                        <p>Each row shows a sold item, the time it was sold and how it was paid.</p>
+                    </div>
+                </div>
+                <div class="panel-card-footer panel-card-actions">
+                    <button id="downloadClosingsBtn" class="btn btn-primary">Download closing report</button>
+                    <button id="generateRestockBtn" class="btn btn-outline">Refresh restock list</button>
+                    <button id="exportRestockBtn" class="btn btn-primary">Download restock order</button>
+                    <button id="shareRestockBtn" class="btn btn-outline">Share restock list</button>
+                </div>
+
+                <div class="overview-overflow-auto">
+                    <table class="overview-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th>Part No.</th>
+                                <th>Time sold</th>
+                                <th>Payment Method</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dailyClosingsTableBody">
+                            <tr>
+                                <td colspan="6" class="overview-empty-state">No sales have been logged today.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <div>
+                        <h3>Restock order list</h3>
+                        <p>This list includes products that need attention. It is downloadable and shareable.</p>
+                    </div>
+                </div>
+                <div class="overview-overflow-auto">
+                    <table class="overview-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th>Part No.</th>
+                                <th>Current Qty</th>
+                                <th>Order Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody id="restockOrderTableBody">
+                            <tr>
+                                <td colspan="6" class="overview-empty-state">No low-stock items need restocking.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p id="restockOrderEmptyState" class="overview-empty-state" style="margin-top: 1rem;">No low-stock items need restocking.</p>
+            </div>
+        </div>
+
+        <!-- Inventory Section (New Items) -->
+        <div id="inventory-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">New Items</h1>
+                    <p class="page-subtitle">Add new products to your inventory</p>
+                </div>
+            </header>
+
+            <div class="data-section">
+                <div class="section-header">
+                    <h3 class="section-title">➕ Add New Product</h3>
+                    <p class="section-subtitle">Enter product details to keep your inventory up to date.</p>
+                </div>
+                <form id="newItemForm" class="overview-form-grid-vertical">
+                    <div class="overview-form-row">
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Product Name</label>
+                            <input type="text" id="prodName" placeholder="Enter product name" class="overview-form-input" required>
+                        </div>
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Quantity</label>
+                            <input type="number" id="prodQty" placeholder="Enter quantity" class="overview-form-input" min="0">
+                        </div>
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Type / Part No.</label>
+                            <input type="text" id="prodPartNo" placeholder="Enter type or part number" class="overview-form-input">
+                        </div>
+                    </div>
+                    <div class="overview-form-row">
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Buying Price</label>
+                            <input type="number" id="prodBuyPrice" placeholder="Enter buying price" class="overview-form-input" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Selling Price</label>
+                            <input type="number" id="prodSellPrice" placeholder="Enter selling price" class="overview-form-input" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Description</label>
+                            <input type="text" id="prodDesc" placeholder="Enter product description" class="overview-form-input">
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary overview-btn-add-full">Add Product</button>
+                    </div>
+                </form>
+            </div>
+            <div class="section-divider"></div>
+            <div class="data-section">
+                <div class="section-header">
+                    <h3 class="section-title">📋 Recently Added Items</h3>
+                    <p class="section-subtitle">Last 10 items added to inventory</p>
+                </div>
+                <div class="overview-overflow-auto">
+                    <table class="overview-table">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Description</th>
+                                <th>Part No.</th>
+                                <th>Date Added</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentItemsTableBody">
+                            <tr>
+                                <td colspan="5">No items added yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stock Section -->
+        <div id="stock-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Stock Management</h1>
+                    <p class="page-subtitle">View, manage, and download your current inventory</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary overview-btn-icon" onclick="downloadStockPDF()">📥 Download as PDF</button>
+                </div>
+            </header>
+            
+            <!-- Update Stock Form Section -->
+            <div class="data-section">
+                <div class="section-header">
+                    <h3 class="section-title">📦 Update Stock Quantity</h3>
+                    <p class="section-subtitle">Quickly add stock for any product</p>
+                </div>
+                <form id="updateStockForm" class="stock-form-wrapper">
+                    <div class="stock-input-grid">
+                        <div class="form-group overview-form-group">
+                            <label for="stockProductSelect" class="overview-form-label">Select Product</label>
+                            <select id="stockProductSelect" class="overview-form-input" required>
+                                <option value="">Choose a product...</option>
+                            </select>
+                        </div>
+                        <div class="form-group overview-form-group">
+                            <label class="overview-form-label">Current Stock Level</label>
+                            <input type="text" id="currentStockQty" class="overview-form-input stock-display" disabled placeholder="0">
+                        </div>
+                    </div>
+                    <div class="stock-input-action">
+                        <div class="form-group overview-form-group flex-grow">
+                            <label class="overview-form-label">Add Quantity</label>
+                            <div class="stock-qty-input-enhanced">
+                                <input type="number" id="addStockQty" class="stock-qty-input" placeholder="0" min="0" step="1" required>
+                                <button type="button" class="btn-qty-add" onclick="addStockQuantity()">Add Stock</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-primary overview-btn-add-full">Confirm Update</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Stock Registry Section with Search -->
+            <div class="data-section">
+                <div class="section-header">
+                    <h3 class="section-title">📊 Current Stock Registry</h3>
+                    <p class="section-subtitle">Track inventory levels, prices, and product details in one place.</p>
+                </div>
+                <!-- Search and Filter Bar -->
+                <div class="stock-search-filter-wrapper">
+                    <div class="stock-search-section">
+                        <div class="overview-search-wrapper">
+                            <span class="overview-search-icon">🔍</span>
+                            <input type="text" id="stockSearchInput" placeholder="Search by product name..." class="overview-search-input" onkeyup="filterStockTable()">
+                        </div>
+                    </div>
+                    <div class="stock-filter-section">
+                        <select id="stockFilterType" class="overview-form-input stock-filter-select" onchange="filterStockTable()" aria-label="Filter stock results">
+                            <option value="all">Filter by: All</option>
+                            <option value="name">Filter by: Name</option>
+                            <option value="qty">Filter by: Qty</option>
+                            <option value="date">Filter by: Date Added</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Stock Table -->
+                <div class="overview-overflow-auto stock-table-wrapper">
+                    <table class="overview-table" id="stockRegistryTable">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Type / Part No.</th>
+                                <th>Buying Price</th>
+                                <th>Selling Price</th>
+                                <th>Description</th>
+                                <th>Date Added</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockTableBody">
+                            <tr>
+                                <td colspan="8" class="overview-empty-state">No stock records yet. Add inventory items to start managing stock.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catalogue Section -->
+        <div id="catalogue-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Product Catalogue</h1>
+                    <p class="page-subtitle">Customer-facing price list and product specifications</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" onclick="window.print()">🖨️ Print Catalogue</button>
+                </div>
+            </header>
+
+            <div class="data-section">
+                <div class="section-header">
+                    <h3 class="section-title">📖 Product Catalogue</h3>
+                    <p class="section-subtitle">A simple customer-facing list of products and prices.</p>
+                </div>
+                <section class="search-section">
+                    <div class="overview-search-wrapper">
+                        <span class="overview-search-icon">🔍</span>
+                        <input type="text" id="catalogueSearch" placeholder="Search by product name or part number..." class="overview-search-input">
+                    </div>
+                </section>
+                <div class="overview-overflow-auto stock-table-wrapper">
+                    <table class="overview-catalogue-table">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Type / Part No.</th>
+                                <th>Description</th>
+                                <th class="text-right">Selling Price</th>
+                            </tr>
+                        </thead>
+                        <tbody id="catalogueTableBody">
+                            <tr>
+                                <td colspan="5" class="overview-empty-state">Your product catalogue will be populated as you add items from the inventory section.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+      
+        <!-- History Section -->
+        <div id="history-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Sales History</h1>
+                    <p class="page-subtitle">Complete record of all processed transactions and invoices</p>
+                </div>
+                <div class="header-actions flex gap-12">
+                    <div class="flex flex-center bg-card p-5-15 rounded-10 border-card">
+                        <span class="font-08rem color-muted mr-10">Filter:</span>
+                        <input type="date" id="startDate" class="bg-deep color-white font-085rem border-none outline-none" title="Start date">
+                        <span class="mr-10 ml-10 color-muted">to</span>
+                        <input type="date" id="endDate" class="bg-deep color-white font-085rem border-none outline-none" title="End date">
+                    </div>
+                    <button class="btn btn-outline" id="exportHistoryBtn">📥 Export CSV</button>
+                </div>
+            </header>
+
+            <div class="history-stats">
+                <div class="stat-item">
+                    <div class="stat-label">Total Period Revenue</div>
+                    <div id="historyRevenueValue" class="stat-value">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Invoices Generated</div>
+                    <div id="historyInvoiceCountValue" class="stat-value">-</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Avg. Transaction Value</div>
+                    <div id="historyAverageValue" class="stat-value">-</div>
+                </div>
+            </div>
+
+            <div class="history-table-section">
+                <div class="section-header">
+                    <h3 class="section-title">Transaction Records</h3>
+                    <p class="section-subtitle">Detailed history of all sales transactions</p>
+                </div>
+                <div class="table-container">
+                    <table class="overview-table">
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Invoice ID</th>
+                                <th>Items Sold</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center color-muted">No sales history yet. Start recording sales to see them here.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- AI Advisor Section -->
+        <div id="advisor-section" class="content-section">
+
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">🤖 AI Business Advisor</h1>
+                    <p class="page-subtitle">Your dedicated virtual CFO. I analyze products, stock levels, and sales history to help you optimize inventory, pricing, and advice on investments.</p>
+                </div>
+            </header>
+
+            <div class="advisor-grid">
+                <!-- Chat Window Card -->
+                <div class="card chat-card">
+                    <div class="card-header">
+                        <span class="card-title">💬 Chat with Advisor</span>
+                        <span id="advisorStatusBadge" class="status-badge">Ready</span>
+                    </div>
+                    <div class="chat-container">
+                        <div id="chatHistory" class="chat-history">
+                            <div class="chat-message bot-message">
+                                <div class="message-content">
+                                    <p>Hello! I am your <strong>ShopMapp AI Business Advisor</strong>.</p>
+                                    <p>I have fully integrated with your live Firestore inventory and sales transaction history. Ask me about stock optimization, pricing strategies, or strategic investment choices!</p>
+                                    <p>Here are some things you can ask me:</p>
+                                    <div class="suggested-prompts">
+                                        <button class="prompt-btn" onclick="sendAdvisorPrompt('What is our bestseller and revenue trend?')">📈 What is our bestseller and revenue trend?</button>
+                                        <button class="prompt-btn" onclick="sendAdvisorPrompt('Which items are low on stock and need restocking?')">📦 Which items are low on stock?</button>
+                                        <button class="prompt-btn" onclick="sendAdvisorPrompt('Give me advice on how to allocate a 50,000 KES investment budget.')">💰 How should we allocate an investment?</button>
+                                        <button class="prompt-btn" onclick="sendAdvisorPrompt('Give me 3 tips to increase my profit margins based on my actual product costs.')">⚡ Give me 3 tips to increase profit margins</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chatInput" placeholder="Ask about sales, stock, pricing, or investment advice..." onkeypress="handleAdvisorKeyPress(event)">
+                            <button id="sendChatBtn" class="btn btn-primary" onclick="submitAdvisorMessage()">Ask AI</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Insights/Metadata Card -->
+                <div class="card insights-card">
+                    <div class="card-header">
+                        <span class="card-title">📊 Advisor Context Data</span>
+                    </div>
+                    <div class="context-data-list">
+                        <div class="context-item">
+                            <span class="context-label">Business Name:</span>
+                            <span id="advisorContextBusinessName" class="context-value">Loading...</span>
+                        </div>
+                        <div class="context-item">
+                            <span class="context-label">Total Products:</span>
+                            <span id="advisorContextTotalProducts" class="context-value">0</span>
+                        </div>
+                        <div class="context-item">
+                            <span class="context-label">Out of Stock Items:</span>
+                            <span id="advisorContextOutOfStock" class="context-value">0</span>
+                        </div>
+                        <div class="context-item">
+                            <span class="context-label">Low Stock Items:</span>
+                            <span id="advisorContextLowStock" class="context-value">0</span>
+                        </div>
+                        <div class="context-item">
+                            <span class="context-label">Total Sales Count:</span>
+                            <span id="advisorContextTotalSales" class="context-value">0</span>
+                        </div>
+                        <div class="context-item">
+                            <span class="context-label">Total Revenue:</span>
+                            <span id="advisorContextTotalRevenue" class="context-value">KES 0.00</span>
+                        </div>
+                    </div>
+                    <div class="context-status-note">
+                        <p>ℹ️ <strong>How I learn:</strong> The advisor automatically receives your real-time catalog and sales history so its advice is perfectly grounded in your actual store performance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="content-section">
+            <header class="dash-header">
+                <div>
+                    <h1 class="page-heading">Business Settings</h1>
+                    <p class="page-subtitle">Configure your business preferences and account settings</p>
+                </div>
+            </header>
+
+            <div class="settings-content">
+                <div class="section-header">
+                    <h3 class="section-title">⚙️ Business Configuration</h3>
+                    <p class="section-subtitle">Update your business information and preferences</p>
+                </div>
+                <form id="businessSettingsForm" class="settings-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="overview-form-label">Business Name</label>
+                            <input type="text" id="settingsBusinessName" placeholder="Your business name" class="overview-form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="overview-form-label">Business Email</label>
+                            <input type="email" id="settingsBusinessEmail" placeholder="admin@business.com" class="overview-form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="overview-form-label">Currency</label>
+                            <select id="settingsCurrency" class="overview-form-input" title="Select currency">
+                                <option value="KES">Kenyan Shilling (KES)</option>
+                                <option value="USD">US Dollar (USD)</option>
+                                <option value="EUR">Euro (EUR)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="overview-form-label">Tax Rate (%)</label>
+                            <input type="number" id="settingsTaxRate" placeholder="16" step="0.01" class="overview-form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="overview-form-label">Daily Sales Target</label>
+                            <input type="number" id="settingsSalesTarget" placeholder="50000" step="0.01" min="0" class="overview-form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="overview-form-label">Daily Profit Target</label>
+                            <input type="number" id="settingsProfitTarget" placeholder="0" step="0.01" min="0" class="overview-form-input">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../notifications.js"></script>
+    <script type="module" src="overview.js"></script>
+    <script type="module">
+        // Navigation functionality
+        window.toggleMenu = function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        };
+
+        window.closeSidebar = function() {
+            document.getElementById('sidebar').classList.remove('active');
+        };
+
+        // Initialize navigation and catalogue search
+        document.querySelectorAll('.side-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const section = this.getAttribute('data-section');
+                if (section) {
+                    e.preventDefault();
+                    window.showSection(section);
+                    closeSidebar();
+                } else {
+                    closeSidebar();
+                }
+            });
+        });
+
+        document.getElementById('catalogueSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#catalogueTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2026 ShopMapp Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

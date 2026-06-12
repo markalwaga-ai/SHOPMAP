@@ -1,0 +1,75 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /businesses/{businessId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == businessId ||
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() &&
+         get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == businessId)
+      );
+      allow write: if request.auth != null && request.auth.uid == businessId;
+    }
+
+    match /products/{productId} {
+      allow read: if request.auth != null && (
+        // owners see their products
+        resource.data.adminUid == request.auth.uid ||
+        // staff that belong to the owner see products
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == resource.data.adminUid)
+      );
+
+      allow create: if request.auth != null && (
+        // owner may create products for their adminUid
+        request.resource.data.adminUid == request.auth.uid ||
+        // staff may create if their staff record adminUid matches
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == request.resource.data.adminUid)
+      );
+
+      allow update: if request.auth != null && (
+        // owner may update
+        resource.data.adminUid == request.auth.uid ||
+        // staff that belong to owner may update (e.g., qty adjustments)
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == resource.data.adminUid)
+      );
+
+      allow delete: if request.auth != null && resource.data.adminUid == request.auth.uid;
+    }
+
+    match /sales/{saleId} {
+      allow read: if request.auth != null && (
+        resource.data.adminUid == request.auth.uid ||
+        resource.data.agentUid == request.auth.uid ||
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == resource.data.adminUid)
+      );
+
+      allow create: if request.auth != null && (
+        // owner creating sales for themselves
+        request.resource.data.adminUid == request.auth.uid ||
+        // agent creating a sale where they are the agent
+        request.resource.data.agentUid == request.auth.uid ||
+        // staff whose staff.adminUid matches the sale adminUid
+        (get(/databases/$(database)/documents/staff/$(request.auth.uid)).exists() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.adminUid == request.resource.data.adminUid)
+      );
+
+      // only owners may modify or delete historical sales
+      allow update, delete: if request.auth != null && resource.data.adminUid == request.auth.uid;
+    }
+
+    match /staff/{staffId} {
+      allow read: if request.auth != null && (
+        // staff can read their own record (either stored uid field or doc id)
+        resource.data.uid == request.auth.uid ||
+        staffId == request.auth.uid ||
+        // owners of the business can read staff for their adminUid
+        resource.data.adminUid == request.auth.uid
+      );
+
+      allow create: if request.auth != null && request.resource.data.adminUid == request.auth.uid;
+      allow update: if request.auth != null && (resource.data.uid == request.auth.uid || resource.data.adminUid == request.auth.uid);
+      allow delete: if request.auth != null && resource.data.adminUid == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

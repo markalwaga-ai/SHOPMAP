@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShopMapp | Role Access</title>
+    <link rel="stylesheet" href="../base.css" />
+    <link rel="stylesheet" href="../auth-login.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-page user-page">
+    <main class="auth-card user-card">
+        <div class="user-header">
+            <div class="header-main">
+                <p class="eyebrow">Identity Verification</p>
+                <h1>Access Your Workspace</h1>
+                <p class="user-subtitle">Confirm your credentials to enter the dashboard.</p>
+            </div>
+            <div class="business-badge">
+                <span id="companyName">Verifying Session...</span>
+            </div>
+        </div>
+
+        <div class="business-selector">
+            <label>Select Business</label>
+            <div class="business-dropdown-wrapper">
+                <div class="business-search-box">
+                    <input type="text" id="business-search" class="overview-form-input" placeholder="Type business name or email to filter..." autocomplete="off">
+                    <span id="business-dropdown-toggle" class="dropdown-toggle-icon">▼</span>
+                </div>
+                <div id="business-dropdown-list" class="business-dropdown-list hidden">
+                    <div id="businessListContainer" class="business-list-items"></div>
+                </div>
+            </div>
+            <label class="checkbox-label remember-group">
+                <input type="checkbox" id="rememberMeCheckbox" checked>
+                Remember me on this device
+            </label>
+            <p id="business-selection-note" class="input-note">Select a registered business before signing in.</p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="login-grid">
+            <!-- MANAGER SECTION -->
+            <section class="login-box staff-box">
+                <div class="role-icon">🛠️</div>
+                <h3>Manager</h3>
+                <p>Operations & Stock</p>
+                <form id="manager-login-form" class="role-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="manager@business.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline btn-full">Continue to Dashboard</button>
+                </form>
+            </section>
+
+            <!-- AGENT SECTION -->
+            <section class="login-box staff-box">
+                <div class="role-icon">💼</div>
+                <h3>Sales Agent</h3>
+                <p>POS & Billing</p>
+                <form id="agent-login-form" class="role-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" placeholder="agent@business.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline btn-full">Continue to Dashboard</button>
+                </form>
+            </section>
+        </div>
+
+        <div class="role-actions">
+            <button id="switch-account-btn" class="btn-text">← Switch Account</button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from "../firebase.js";
+        import { signInWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { showLoading, hideLoading } from "../notifications.js";
+
+        const companyNameEl = document.getElementById("companyName");
+        const rememberMeCheckbox = document.getElementById("rememberMeCheckbox");
+        const businessInput = document.getElementById("business-search");
+        const businessDropdownList = document.getElementById("business-dropdown-list");
+        const businessListContainer = document.getElementById("businessListContainer");
+        const businessDropdownToggle = document.getElementById("business-dropdown-toggle");
+        const businessSelectionNote = document.getElementById("business-selection-note");
+        let selectedBusiness = null;
+        let businessesCache = [];
+        let isAutoRedirecting = false;
+
+        // Utility: Set button loading state
+        function setButtonLoading(button, isLoading) {
+            if (isLoading) {
+                button.disabled = true;
+                button.dataset.originalText = button.textContent;
+                button.textContent = "Loading...";
+                showLoading("Processing...");
+            } else {
+                button.disabled = false;
+                button.textContent = button.dataset.originalText || button.textContent;
+                hideLoading();
+            }
+        }
+
+        async function loadBusinessSuggestions() {
+            try {
+                const snapshot = await getDocs(collection(db, "businesses"));
+                businessesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderBusinessList(businessesCache);
+            } catch (error) {
+                console.error('Failed to load business suggestions', error);
+            }
+        }
+
+        function renderBusinessList(businesses) {
+            businessListContainer.innerHTML = businesses
+                .map(biz => `
+                    <div class="business-list-item" data-business-id="${biz.id}" data-business-name="${biz.businessName || ''}" data-business-email="${biz.businessEmail || ''}">
+                        <div class="business-item-name">${biz.businessName || 'Unnamed Business'}</div>
+                        <div class="business-item-email">${biz.businessEmail || 'No email'}</div>
+                    </div>
+                `)
+                .join('');
+
+            document.querySelectorAll('.business-list-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const businessId = item.getAttribute('data-business-id');
+                    const business = businessesCache.find(b => b.id === businessId);
+                    if (business) {
+                        selectBusinessFromDropdown(business);
+                    }
+                });
+            });
+        }
+
+        function filterBusinessList() {
+            const searchTerm = (businessInput.value || '').trim().toLowerCase();
+            if (!searchTerm) {
+                renderBusinessList(businessesCache);
+                return;
+            }
+
+            const filtered = businessesCache.filter(biz => {
+                const name = (biz.businessName || '').toLowerCase();
+                const email = (biz.businessEmail || '').toLowerCase();
+                return name.includes(searchTerm) || email.includes(searchTerm);
+            });
+
+            renderBusinessList(filtered);
+        }
+
+        function getBusinessFromInput(inputValue) {
+            const searchTerm = (inputValue || '').trim().toLowerCase();
+            if (!searchTerm) return null;
+
+            return businessesCache.find(biz => {
+                const name = (biz.businessName || '').toLowerCase();
+                const email = (biz.businessEmail || '').toLowerCase();
+                return name === searchTerm || email === searchTerm;
+            }) || null;
+        }
+
+        function selectBusinessFromDropdown(business) {
+            selectBusiness(business);
+            businessInput.value = business.businessName || business.businessEmail || '';
+            closeBusinessDropdown();
+        }
+
+        function openBusinessDropdown() {
+            businessDropdownList.classList.remove('hidden');
+            businessDropdownToggle.textContent = '▲';
+            renderBusinessList(businessesCache);
+        }
+
+        function closeBusinessDropdown() {
+            businessDropdownList.classList.add('hidden');
+            businessDropdownToggle.textContent = '▼';
+        }
+
+        function toggleBusinessDropdown() {
+            if (businessDropdownList.classList.contains('hidden')) {
+                openBusinessDropdown();
+            } else {
+                closeBusinessDropdown();
+            }
+        }
+
+        function selectBusiness(business) {
+            selectedBusiness = business;
+            if (business) {
+                businessSelectionNote.textContent = `Selected business: ${business.businessName || business.businessEmail}`;
+                businessSelectionNote.classList.remove('input-note-error');
+                companyNameEl.textContent = business.businessName || business.businessEmail || 'Selected Business';
+            } else {
+                businessSelectionNote.textContent = 'Select a registered business before signing in.';
+                businessSelectionNote.classList.remove('input-note-error');
+                companyNameEl.textContent = 'Staff Access Mode';
+            }
+        }
+
+        function clearSelectedBusiness() {
+            selectedBusiness = null;
+            businessSelectionNote.textContent = 'Select a registered business before signing in.';
+            businessSelectionNote.classList.remove('input-note-error');
+        }
+
+        businessDropdownToggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleBusinessDropdown();
+        });
+
+        businessInput.addEventListener('focus', () => {
+            openBusinessDropdown();
+            filterBusinessList();
+        });
+
+        businessInput.addEventListener('input', (event) => {
+            openBusinessDropdown();
+            filterBusinessList();
+
+            const business = getBusinessFromInput(event.target.value);
+            if (business) {
+                selectBusiness(business);
+            } else {
+                clearSelectedBusiness();
+            }
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.closest('.business-dropdown-wrapper')) {
+                closeBusinessDropdown();
+            }
+        });
+
+        // 1. Session Check & Remember Me (Auto-redirect)
+        auth.onAuthStateChanged(async (user) => {
+            if (user && !isAutoRedirecting) {
+                isAutoRedirecting = true;
+                try {
+                    const businessDoc = await getDoc(doc(db, "businesses", user.uid));
+                    if (businessDoc.exists()) {
+                        companyNameEl.textContent = businessDoc.data().businessName;
+                        sessionStorage.setItem('activeRole', 'owner');
+                        setTimeout(() => {
+                            window.location.href = "overview.html";
+                        }, 500);
+                        return;
+                    }
+
+                    let staffDoc = null;
+                    try {
+                        // Query staff documents by email so Firestore rules that depend on
+                        // `request.auth.token.email` allow the read only when appropriate.
+                        const staffQuery = query(collection(db, "staff"), where("email", "==", user.email));
+                        const staffSnap = await getDocs(staffQuery);
+                        if (!staffSnap.empty) {
+                            // use the first matching staff doc
+                            staffDoc = staffSnap.docs[0];
+                        } else {
+                            staffDoc = null;
+                        }
+                    } catch (staffError) {
+                        if (staffError.code !== 'permission-denied') {
+                            throw staffError;
+                        }
+                        staffDoc = null;
+                    }
+
+                    if (staffDoc) {
+                        const staffData = staffDoc.data();
+                        const ownerBusinessDoc = await getDoc(doc(db, "businesses", staffData.adminUid));
+                        companyNameEl.textContent = ownerBusinessDoc.exists() ? ownerBusinessDoc.data().businessName : "Staff Access";
+                        sessionStorage.setItem("activeRole", staffData.role);
+                        sessionStorage.setItem("staffData", JSON.stringify(staffData));
+                        setTimeout(() => {
+                            window.location.href = "overview.html";
+                        }, 500);
+                        return;
+                    }
+
+                    companyNameEl.textContent = "ShopMapp Workspace";
+                } catch (e) {
+                    console.error("Session check error:", e);
+                    companyNameEl.textContent = "ShopMapp Workspace";
+                    isAutoRedirecting = false;
+                }
+            } else if (!user) {
+                companyNameEl.textContent = "Staff Access Mode";
+                isAutoRedirecting = false;
+            }
+        });
+
+        // 3. Staff Auth (Manager & Agent) with Loading
+        const handleStaffLogin = async (e, roleType) => {
+            e.preventDefault();
+            const email = e.target.email.value.trim();
+            const password = e.target.password.value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            const persistence = rememberMeCheckbox.checked ? browserLocalPersistence : browserSessionPersistence;
+            await setPersistence(auth, persistence);
+
+            setButtonLoading(submitBtn, true);
+            if (!selectedBusiness) {
+                setButtonLoading(submitBtn, false);
+                alert('Please select a registered business before signing in.');
+                return;
+            }
+
+            try {
+                // Authenticate with Firebase
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Fetch role from Firestore by email (safer under security rules)
+                const staffQuery = query(collection(db, "staff"), where("email", "==", auth.currentUser.email));
+                const staffSnap = await getDocs(staffQuery);
+                if (!staffSnap.empty) {
+                    const staffDoc = staffSnap.docs[0];
+                    const staffData = staffDoc.data();
+                    if (staffData.role === roleType) {
+                        if (staffData.adminUid !== selectedBusiness.id) {
+                            await auth.signOut();
+                            setButtonLoading(submitBtn, false);
+                            alert('This user does not belong to the selected business. Please choose the correct business.');
+                            return;
+                        }
+
+                        sessionStorage.setItem("activeRole", roleType);
+                        sessionStorage.setItem("staffData", JSON.stringify(staffData));
+                        sessionStorage.setItem('selectedBusiness', JSON.stringify(selectedBusiness));
+                        
+                        // Direct to overview.html with delay
+                        setTimeout(() => {
+                            window.location.href = "overview.html";
+                        }, 300);
+                    } else {
+                        setButtonLoading(submitBtn, false);
+                        alert("Incorrect role for this email");
+                    }
+                } else {
+                    setButtonLoading(submitBtn, false);
+                    alert("Staff record not found.");
+                }
+            } catch (error) {
+                setButtonLoading(submitBtn, false);
+                alert("Staff Login Error: " + error.message);
+            }
+        };
+
+        // 4. Switch Account Handler
+        document.getElementById("switch-account-btn").addEventListener("click", () => {
+            const btn = document.getElementById("switch-account-btn");
+            setButtonLoading(btn, true);
+            auth.signOut().then(() => {
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 300);
+            }).catch(error => {
+                setButtonLoading(btn, false);
+                alert("Sign out error: " + error.message);
+            });
+        });
+
+        // 5. Form Submission Handlers
+        document.getElementById("manager-login-form").addEventListener("submit", (e) => handleStaffLogin(e, "manager"));
+        document.getElementById("agent-login-form").addEventListener("submit", (e) => handleStaffLogin(e, "sales_agent"));
+
+        window.addEventListener('DOMContentLoaded', loadBusinessSuggestions);
+    </script>
+</body>
+</html>
